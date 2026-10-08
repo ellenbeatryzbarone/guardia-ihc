@@ -1,0 +1,8 @@
+{
+ "arquivo": "../../index.html",
+ "termos_rotulantes_encontrados": [],
+ "frases_obrigatorias_ausentes": [],
+ "termos_verificados": 15,
+ "frases_exigidas": 6,
+ "resultado": "APROVADO"
+}

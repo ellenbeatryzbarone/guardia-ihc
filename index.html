@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GuardIA — Painel da família</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#141726;
+    --ink-soft:#565B7D;
+    --paper:#F5F6FC;
+    --card:#FFFFFF;
+    --raised:#ECEEF8;
+    --line:#DEE1F1;
+    --blue:#3355DE;
+    --blue-deep:#0E1233;
+    --blue-tint:#E7ECFC;
+    --purple:#7A35E0;
+    --purple-tint:#F1E9FE;
+    --cyan:#0EA5C7;
+    --white:#FFFFFF;
+    --error:#B3261E;
+    --error-tint:#FBEAE8;
+    --font-display:'Fraunces', Georgia, serif;
+    --font-body:'Libre Franklin', -apple-system, sans-serif;
+    --radius:10px;
+    --motion:.15s;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#E9EAFB; --ink-soft:#A7ABD3;
+      --paper:#0B0E22; --card:#131636; --raised:#1A1F45;
+      --line:#2B3060;
+      --blue:#7C93FF; --blue-deep:#05071A; --blue-tint:#1B2354;
+      --purple:#C39CFF; --purple-tint:#241A46;
+      --cyan:#5FD3EE; --white:#131636;
+      --error:#FF8A80; --error-tint:#3A1B18;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#E9EAFB; --ink-soft:#A7ABD3;
+    --paper:#0B0E22; --card:#131636; --raised:#1A1F45;
+    --line:#2B3060;
+    --blue:#7C93FF; --blue-deep:#05071A; --blue-tint:#1B2354;
+    --purple:#C39CFF; --purple-tint:#241A46;
+    --cyan:#5FD3EE; --white:#131636;
+    --error:#FF8A80; --error-tint:#3A1B18;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--font-body); font-size:15.5px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit; cursor:pointer;}
+  h1,h2,h3{font-family:var(--font-display); margin:0;}
+  input{font-family:inherit;}
+  img{max-width:100%; display:block;}
+
+  a, button, input, select, [tabindex]{}
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible{
+    outline:3px solid var(--purple); outline-offset:2px; border-radius:4px;
+  }
+
+  .visually-hidden{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+  .skip-link{
+    position:absolute; top:-100px; left:12px; z-index:1000;
+    background:var(--purple); color:#fff; padding:10px 16px; border-radius:8px;
+    font-size:14px; font-weight:600; text-decoration:none; transition:top var(--motion);
+  }
+  .skip-link:focus{top:12px;}
+
+  /* ===================================================== */
+  /* AUTH SCREEN                                            */
+  /* ===================================================== */
+  #screen-auth{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:var(--blue-deep); padding:32px 20px;
+  }
+  .auth-wrap{width:100%; max-width:420px;}
+  .auth-brand{display:flex; flex-direction:column; align-items:center; margin-bottom:22px;}
+  .auth-brand .wordmark{
+    font-family:var(--font-display); font-weight:600; color:#fff;
+    font-size:clamp(2rem, 6vw, 2.6rem); letter-spacing:-.01em; margin:0;
+  }
+
+  .auth-card{background:var(--card); border-radius:14px; padding:8px; border:1px solid #262C63;}
+  .auth-tabs{display:flex; gap:4px; padding:8px 8px 0;}
+  .auth-tabs button{
+    flex:1; background:none; border:none; padding:11px 0; font-size:14px; font-weight:600;
+    color:var(--ink-soft); border-radius:8px 8px 0 0; border-bottom:2px solid transparent;
+  }
+  .auth-tabs button[aria-selected="true"]{color:var(--blue); border-bottom:2px solid var(--blue);}
+
+  .auth-body{padding:26px 26px 28px;}
+  .auth-body h2{font-size:1.3rem; margin-bottom:6px;}
+  .auth-body .sub{font-size:13.5px; color:var(--ink-soft); margin-bottom:22px;}
+
+  .f-field{margin-bottom:16px;}
+  .f-field label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;}
+  .f-field input, .f-field select{
+    width:100%; padding:11px 13px; border-radius:8px; border:1px solid var(--line);
+    background:var(--raised); color:var(--ink); font-size:14.5px;
+  }
+  .pw-wrap{position:relative;}
+  .pw-wrap input{padding-right:74px;}
+  .pw-toggle{
+    position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    background:none; border:none; font-size:12px; font-weight:600; color:var(--blue);
+    padding:6px 8px;
+  }
+
+  .f-row{display:grid; grid-template-columns:1fr 110px; gap:12px;}
+
+  .auth-error{
+    background:var(--error-tint); border:1px solid var(--error); color:var(--error);
+    font-size:13px; padding:0 12px; border-radius:8px; margin-bottom:0;
+    max-height:0; opacity:0; overflow:hidden; transition:max-height var(--motion), opacity var(--motion), margin var(--motion), padding var(--motion);
+  }
+  .auth-error.show{max-height:120px; opacity:1; padding:10px 12px; margin-bottom:16px;}
+
+  .btn{
+    border:none; border-radius:8px; padding:12px 18px; font-size:14.5px; font-weight:600;
+    background:var(--blue); color:#fff; width:100%;
+  }
+  .btn.small{padding:9px 14px; font-size:13px; width:auto;}
+  .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--ink);}
+  .btn:disabled{opacity:.5;}
+
+  .auth-note{font-size:12px; color:#8790C9; text-align:center; margin-top:18px; line-height:1.5;}
+
+  /* ===================================================== */
+  /* APP SHELL                                              */
+  /* ===================================================== */
+  #screen-app{display:none;}
+  .app{display:grid; grid-template-columns:230px 1fr; min-height:100vh;}
+
+  .sidebar{
+    background:var(--blue-deep); color:#fff;
+    padding:26px 18px; display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh;
+  }
+  .brand{display:flex; align-items:center; gap:10px; margin-bottom:30px; padding:0 6px;}
+  .brand img{width:32px; height:auto; flex-shrink:0;}
+  .brand .name{font-family:var(--font-display); font-weight:600; font-size:19px; color:#fff;}
+
+  .child-switch{
+    background:#171C49; border:1px solid #262C63; border-radius:var(--radius);
+    padding:12px 14px; margin-bottom:26px;
+  }
+  .child-switch .who{font-weight:600; font-size:14.5px; color:#fff; margin-bottom:2px;}
+  .child-switch .meta{font-size:12px; color:#9AA1D6;}
+
+  nav.tabs{display:flex; flex-direction:column; gap:2px; flex:1;}
+  nav.tabs button{
+    background:none; border:none; color:#B4B9E6; text-align:left;
+    padding:11px 12px; border-radius:8px; font-size:14.5px; font-weight:500;
+    display:flex; align-items:center; gap:10px;
+  }
+  nav.tabs button .dot{width:6px; height:6px; border-radius:50%; background:transparent; flex-shrink:0;}
+  nav.tabs button[aria-selected="true"]{background:#1B2050; color:#fff;}
+  nav.tabs button[aria-selected="true"] .dot{background:var(--purple);}
+  nav.tabs button:hover:not([aria-selected="true"]){background:#141938;}
+
+  .sidebar-foot{font-size:11.5px; color:#6870A8; padding:14px 12px 0; border-top:1px solid #232952; margin-top:14px;}
+  .logout-btn{
+    background:none; border:1px solid #262C63; color:#B4B9E6; font-size:12.5px; font-weight:600;
+    padding:9px 12px; border-radius:8px; margin-top:12px; text-align:left;
+  }
+  .logout-btn:hover{background:#141938;}
+
+  main{padding:34px 42px 80px; max-width:960px;}
+  .topbar{margin-bottom:32px;}
+  .topbar .eyebrow{font-size:13px; color:var(--purple); font-weight:600; margin-bottom:6px;}
+  .topbar h1{font-size:1.9rem; font-weight:600;}
+  .topbar p{color:var(--ink-soft); margin:8px 0 0; max-width:60ch; font-size:14.5px;}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:22px 24px;}
+  .grid2{display:grid; grid-template-columns:1.3fr 1fr; gap:20px;}
+  .stack{display:flex; flex-direction:column; gap:20px;}
+
+  .cat-row{margin-bottom:18px;}
+  .cat-row:last-child{margin-bottom:0;}
+  .cat-head{display:flex; justify-content:space-between; font-size:14px; margin-bottom:7px;}
+  .cat-head .name{font-weight:600;}
+  .cat-head .pct{color:var(--ink-soft);}
+  .meter{height:8px; background:var(--raised); border-radius:6px; overflow:hidden;}
+  .meter > span{display:block; height:100%; background:var(--blue); border-radius:6px;}
+
+  .kpi-row{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:20px;}
+  .kpi{border-top:2px solid var(--blue); padding-top:10px;}
+  .kpi .num{font-family:var(--font-display); font-weight:600; font-size:1.7rem; display:block;}
+  .kpi .lbl{font-size:12.5px; color:var(--ink-soft);}
+
+  .checkpoint{background:var(--blue-tint); border:1px solid var(--blue); border-radius:var(--radius); padding:18px 20px;}
+  .checkpoint .tag{font-size:12px; font-weight:600; color:var(--blue); margin-bottom:8px; display:block;}
+  .checkpoint p{margin:0 0 14px; font-size:14.5px;}
+
+  .btn.small.inline{padding:7px 12px; font-size:12.5px; width:auto;}
+
+  .alert-card{
+    border:1px solid var(--line); border-left:3px solid var(--purple); border-radius:var(--radius);
+    background:var(--card); padding:18px 22px; margin-bottom:16px;
+  }
+  .alert-card.resolved{border-left-color:var(--blue); opacity:.65;}
+  .alert-top{display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:10px;}
+  .alert-top h3{font-size:1.02rem;}
+  .sev{font-size:11px; font-weight:700; color:var(--purple); background:var(--purple-tint); padding:3px 9px; border-radius:20px; white-space:nowrap;}
+  .alert-card p{margin:0 0 14px; font-size:14px; color:var(--ink-soft);}
+  .suggest{background:var(--raised); border-radius:8px; padding:12px 14px; font-size:13.5px; margin-bottom:14px;}
+  .suggest b{display:block; font-size:11.5px; color:var(--blue); margin-bottom:4px; font-weight:700;}
+  .alert-actions{display:flex; gap:10px;}
+  .done-label{font-size:13px; color:var(--blue); font-weight:600; display:none;}
+  .alert-card.resolved .done-label{display:inline;}
+  .alert-card.resolved .alert-actions{display:none;}
+
+  .trail{border:1px solid var(--line); border-radius:var(--radius); background:var(--card); padding:20px 22px; margin-bottom:16px;}
+  .trail-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;}
+  .trail-top h3{font-size:1.02rem;}
+  .trail-top .xp{font-size:12px; color:var(--purple); font-weight:600;}
+  .trail p{font-size:14px; color:var(--ink-soft); margin:0 0 14px;}
+  .trail-progress{display:flex; align-items:center; gap:12px;}
+  .trail-progress .meter{flex:1;}
+  .trail-progress .state{font-size:12.5px; font-weight:600; min-width:92px; text-align:right;}
+
+  .field{margin-bottom:22px;}
+  .field legend, .field .title{display:block; font-weight:600; font-size:14px; margin-bottom:8px; padding:0;}
+  .field .hint{font-size:12.5px; color:var(--ink-soft); margin-bottom:10px;}
+  select, input[type=range]{width:100%;}
+  .card select{padding:9px 12px; border-radius:7px; border:1px solid var(--line); background:var(--raised); color:var(--ink); font-size:14px;}
+
+  fieldset{border:none; margin:0; padding:0;}
+  label.toggle-row{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:12px 4px; border-top:1px solid var(--line); cursor:pointer;
+  }
+  label.toggle-row:last-child{border-bottom:1px solid var(--line);}
+  .toggle-row .t-name{font-size:14px; font-weight:500;}
+  .toggle-row .t-desc{font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
+  .switch{position:relative; width:42px; height:24px; flex-shrink:0;}
+  .switch input{opacity:0; width:100%; height:100%; margin:0; position:absolute; cursor:pointer; z-index:2;}
+  .switch .track{position:absolute; inset:0; background:var(--raised); border:1px solid var(--line); border-radius:20px; transition:background var(--motion);}
+  .switch .knob{position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--white); box-shadow:0 1px 2px rgba(0,0,0,.2); transition:transform var(--motion);}
+  .switch input:checked + .track{background:var(--blue); border-color:var(--blue);}
+  .switch input:checked + .track + .knob{transform:translateX(18px);}
+  .switch input:focus-visible + .track{outline:3px solid var(--purple); outline-offset:2px;}
+
+  .time-range{display:flex; align-items:center; gap:12px; font-size:14px; font-weight:600; margin-top:8px;}
+  .time-range span{color:var(--blue); min-width:48px;}
+
+  .save-bar{display:flex; align-items:center; gap:14px; margin-top:26px;}
+  .save-bar .btn{width:auto;}
+  .saved-msg{font-size:13px; color:var(--blue); font-weight:600; opacity:0; transition:opacity var(--motion);}
+  .saved-msg.show{opacity:1;}
+
+  @media (max-width:840px){
+    .app{grid-template-columns:1fr;}
+    .sidebar{position:relative; height:auto; flex-direction:row; align-items:center; flex-wrap:wrap; gap:14px; padding:16px 18px;}
+    .brand{margin-bottom:0;}
+    .child-switch{margin-bottom:0; flex:1;}
+    nav.tabs{flex-direction:row; flex-wrap:wrap; width:100%;}
+    .sidebar-foot{display:none;}
+    .logout-btn{margin-left:auto; margin-top:0;}
+    main{padding:26px 20px 60px;}
+    .grid2{grid-template-columns:1fr;}
+    .kpi-row{grid-template-columns:1fr 1fr;}
+  }
+  .meta-row{display:flex; gap:8px; flex-wrap:wrap; margin:0 0 12px;}
+  .chip{font-size:11.5px; font-weight:600; background:var(--raised); border:1px solid var(--line); border-radius:20px; padding:3px 10px; color:var(--ink-soft);}
+  .why{background:var(--blue-tint); border-radius:8px; padding:12px 14px; font-size:13px; margin-bottom:14px;}
+  .why b.h{display:block; font-size:11.5px; color:var(--blue); margin-bottom:4px; font-weight:700;}
+  .note-line{font-size:12.5px; color:var(--ink-soft); margin:14px 0 0;}
+  .alert-actions{flex-wrap:wrap;}
+  .priv-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .priv-list{margin:0; padding-left:18px; font-size:14px;}
+  .priv-list li{margin-bottom:6px;}
+  .priv-table{width:100%; border-collapse:collapse; font-size:13.5px; margin-top:6px;}
+  .priv-table th,.priv-table td{text-align:left; padding:8px 6px; border-top:1px solid var(--line);}
+  .btn.danger{background:var(--error);}
+  .consent{display:flex; gap:10px; align-items:flex-start; font-size:12.5px; color:var(--ink-soft); margin:2px 0 16px;}
+  .consent input{margin-top:3px; width:auto;}
+  @media (max-width:840px){ .priv-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- AUTH SCREEN                                                    -->
+<!-- ============================================================ -->
+<div id="screen-auth">
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <h1 class="wordmark">GuardIA</h1>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-tabs" role="tablist" aria-label="Entrar ou criar conta">
+        <button id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login" type="button">Entrar</button>
+        <button id="tab-signup" role="tab" aria-selected="false" aria-controls="panel-signup" tabindex="-1" type="button">Criar conta</button>
+      </div>
+
+      <div class="auth-body">
+        <!-- LOGIN -->
+        <div id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+          <form id="form-login" novalidate>
+            <h2>Bem-vindo de volta</h2>
+            <p class="sub">Entre para acompanhar o progresso onde você parou.</p>
+            <div class="auth-error" id="login-error" role="alert"></div>
+            <div class="f-field">
+              <label for="login-email">E-mail do responsável</label>
+              <input type="email" id="login-email" required autocomplete="email" placeholder="voce@email.com">
+            </div>
+            <div class="f-field">
+              <label for="login-pass">Senha</label>
+              <div class="pw-wrap">
+                <input type="password" id="login-pass" required autocomplete="current-password" placeholder="••••••••">
+                <button type="button" class="pw-toggle" data-target="login-pass" aria-pressed="false">Mostrar</button>
+              </div>
+            </div>
+            <button type="submit" class="btn">Entrar</button>
+          </form>
+        </div>
+
+        <!-- SIGNUP -->
+        <div id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" hidden>
+          <form id="form-signup" novalidate>
+            <h2>Criar cadastro</h2>
+            <p class="sub">Vincule automaticamente o perfil da criança ao seu cadastro.</p>
+            <div class="auth-error" id="signup-error" role="alert"></div>
+            <div class="f-field">
+              <label for="su-parent">Seu nome (responsável)</label>
+              <input type="text" id="su-parent" required autocomplete="name" placeholder="Nome completo">
+            </div>
+            <div class="f-field">
+              <label for="su-email">E-mail</label>
+              <input type="email" id="su-email" required autocomplete="email" placeholder="voce@email.com">
+            </div>
+            <div class="f-field">
+              <label for="su-pass">Senha</label>
+              <div class="pw-wrap">
+                <input type="password" id="su-pass" required autocomplete="new-password" placeholder="Crie uma senha" aria-describedby="su-pass-hint">
+                <button type="button" class="pw-toggle" data-target="su-pass" aria-pressed="false">Mostrar</button>
+              </div>
+              <div class="hint" id="su-pass-hint" style="margin-top:6px;">Use pelo menos 6 caracteres.</div>
+            </div>
+            <div class="f-row">
+              <div class="f-field" style="margin-bottom:0;">
+                <label for="su-child">Nome da criança</label>
+                <input type="text" id="su-child" required placeholder="Nome">
+              </div>
+              <div class="f-field" style="margin-bottom:0;">
+                <label for="su-age">Idade</label>
+                <select id="su-age">
+                  <option>6</option><option>7</option><option>8</option><option>9</option>
+                  <option selected>10</option><option>11</option><option>12</option>
+                  <option>13</option><option>14</option><option>15</option><option>16</option><option>17</option>
+                </select>
+              </div>
+            </div>
+            <div style="height:16px;"></div>
+            <label class="consent" for="su-consent"><input type="checkbox" id="su-consent"><span>Li a Política de Privacidade v1.1 e autorizo, como responsável, o tratamento dos dados de meu filho ou filha, sabendo que não verei o texto das conversas e que os alertas podem errar.</span></label>
+            <button type="submit" class="btn">Criar cadastro e continuar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <p class="auth-note">Os dados ficam salvos neste navegador. Nenhum conteúdo literal de conversas é coletado — conforme o ECA Digital (Lei nº 15.211/2025) e a LGPD.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- APP SCREEN                                                     -->
+<!-- ============================================================ -->
+<div id="screen-app">
+  <a class="skip-link" href="#main-content">Pular para o conteúdo principal</a>
+  <div class="app">
+    <aside class="sidebar" aria-label="Barra lateral do GuardIA">
+      <div class="brand">
+        <span class="name">GuardIA</span>
+      </div>
+
+      <div class="child-switch">
+        <div class="who" id="sb-child-name">—</div>
+        <div class="meta">Perfil de supervisão: mediação ativa</div>
+      </div>
+
+      <nav class="tabs" role="tablist" aria-label="Seções do painel" aria-orientation="vertical">
+        <button role="tab" aria-selected="true" aria-controls="view-painel" id="navtab-painel" data-view="painel"><span class="dot" aria-hidden="true"></span>Painel de transparência</button>
+        <button role="tab" aria-selected="false" aria-controls="view-alertas" id="navtab-alertas" data-view="alertas" tabindex="-1"><span class="dot" aria-hidden="true"></span>Alertas educativos</button>
+        <button role="tab" aria-selected="false" aria-controls="view-trilhas" id="navtab-trilhas" data-view="trilhas" tabindex="-1"><span class="dot" aria-hidden="true"></span>Trilhas de letramento</button>
+        <button role="tab" aria-selected="false" aria-controls="view-privacidade" id="navtab-privacidade" data-view="privacidade" tabindex="-1"><span class="dot" aria-hidden="true"></span>Privacidade</button>
+        <button role="tab" aria-selected="false" aria-controls="view-config" id="navtab-config" data-view="config" tabindex="-1"><span class="dot" aria-hidden="true"></span>Configurações</button>
+      </nav>
+
+      <div class="sidebar-foot">Conforme ECA Digital (Lei nº 15.211/2025) e LGPD. Nenhum conteúdo literal de conversa é exibido.</div>
+      <button class="logout-btn" id="btn-logout">Sair da conta</button>
+    </aside>
+
+    <main id="main-content" tabindex="-1">
+
+      <!-- ================= PAINEL ================= -->
+      <section class="view active" id="view-painel" role="tabpanel" aria-labelledby="navtab-painel" tabindex="0">
+        <div class="topbar">
+          <p class="eyebrow">Pilar 1 · RF03</p>
+          <h1>Painel de transparência de IA</h1>
+          <p>Converte o uso de IA em indicadores compreensíveis, por categoria de assunto — sem expor o conteúdo literal e privado das conversas de <span class="child-name-inline">—</span>.</p>
+        </div>
+
+        <div class="grid2">
+          <div class="card">
+            <h3 style="font-size:1rem; margin-bottom:18px;">Uso por categoria · últimos 7 dias</h3>
+            <div class="cat-row">
+              <div class="cat-head"><span class="name" id="lbl-cat1">Escola</span><span class="pct">38%</span></div>
+              <div class="meter" role="img" aria-labelledby="lbl-cat1" aria-label="Escola: 38 por cento"><span style="width:38%"></span></div>
+            </div>
+            <div class="cat-row">
+              <div class="cat-head"><span class="name" id="lbl-cat2">Entretenimento</span><span class="pct">27%</span></div>
+              <div class="meter" role="img" aria-label="Entretenimento: 27 por cento"><span style="width:27%"></span></div>
+            </div>
+            <div class="cat-row">
+              <div class="cat-head"><span class="name" id="lbl-cat3">Socialização</span><span class="pct">19%</span></div>
+              <div class="meter" role="img" aria-label="Socialização: 19 por cento"><span style="width:19%"></span></div>
+            </div>
+            <div class="cat-row">
+              <div class="cat-head"><span class="name" id="lbl-cat4">Apoio emocional</span><span class="pct">16%</span></div>
+              <div class="meter" role="img" aria-label="Apoio emocional: 16 por cento"><span style="width:16%"></span></div>
+            </div>
+
+            <p class="note-line">Última atualização do painel: <strong class="last-update">—</strong> · protótipo com dados fictícios</p>
+            <details class="why" style="margin-top:14px;"><summary style="cursor:pointer; font-weight:600;">O que significa “Apoio emocional”?</summary>
+              <p style="margin:10px 0 4px;"><b>Significa:</b> conversas com IA sobre sentimentos, como tristeza, preocupação ou raiva.</p>
+              <p style="margin:4px 0;"><b>Não permite concluir:</b> que existe um problema de saúde. A classificação pode estar errada.</p>
+              <p style="margin:4px 0 0;"><b>Como corrigir:</b> na aba Alertas, use “Corrigir classificação”.</p>
+            </details>
+            <div class="kpi-row">
+              <div class="kpi"><span class="num">4h 10m</span><span class="lbl">tempo total com IA na semana</span></div>
+              <div class="kpi"><span class="num">↑ 12%</span><span class="lbl">apoio emocional vs. semana anterior</span></div>
+              <div class="kpi"><span class="num" id="kpi-open-alerts">2</span><span class="lbl">alertas educativos em aberto</span></div>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="checkpoint">
+              <span class="tag">Checkpoint da semana · RF05</span>
+              <p><span class="child-name-inline">—</span> usou apoio emocional com IA um pouco mais que de costume. Uma boa deixa para perguntar como ela(e) está — sem citar o app.</p>
+              <button class="btn small inline" id="btn-go-alertas">Ver sugestão de conversa</button>
+            </div>
+            <div class="card">
+              <h3 style="font-size:.95rem; margin-bottom:12px;">Progresso de letramento digital</h3>
+              <div class="kpi-row" style="grid-template-columns:1fr 1fr; margin-top:0;">
+                <div class="kpi"><span class="num" id="stat-trails-done">0</span><span class="lbl">trilhas concluídas</span></div>
+                <div class="kpi"><span class="num" id="stat-xp">0</span><span class="lbl">XP acumulado</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ALERTAS ================= -->
+      <section class="view" id="view-alertas" role="tabpanel" aria-labelledby="navtab-alertas" tabindex="0">
+        <div class="topbar">
+          <p class="eyebrow">Pilar 2 · RF04</p>
+          <h1>Alertas educativos, não punitivos</h1>
+          <p>Em vez de bloqueios silenciosos, o GuardIA sinaliza padrões que merecem conversa e sugere como abrir o diálogo.</p>
+        </div>
+        <p class="note-line" style="margin:-14px 0 18px;">Alertas gerados em <strong class="last-update">—</strong> · protótipo com dados fictícios · nenhuma sanção automática</p>
+        <div id="alert-list" aria-live="polite"></div>
+      </section>
+
+      <!-- ================= TRILHAS ================= -->
+      <section class="view" id="view-trilhas" role="tabpanel" aria-labelledby="navtab-trilhas" tabindex="0">
+        <div class="topbar">
+          <p class="eyebrow">Pilar 3 · RF06</p>
+          <h1>Trilhas de letramento digital</h1>
+          <p>Atividades gamificadas feitas em conjunto por pais e filhos. O progresso de <span class="child-name-inline">—</span> fica salvo a cada etapa concluída.</p>
+        </div>
+        <div id="trail-list" aria-live="polite"></div>
+      </section>
+
+      <!-- ================= PRIVACIDADE ================= -->
+      <section class="view" id="view-privacidade" role="tabpanel" aria-labelledby="navtab-privacidade" tabindex="0">
+        <div class="topbar">
+          <p class="eyebrow">RF01 · RF03 · Riscos T07, E6, E5</p>
+          <h1>Privacidade e controle dos dados</h1>
+          <p>Veja com clareza o que o GuardIA mostra e o que ele nunca mostra sobre <span class="child-name-inline">—</span>. Você decide o que fica ativo.</p>
+        </div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="priv-grid">
+            <div>
+              <h3 style="font-size:1rem; margin-bottom:10px;">O que você vê</h3>
+              <ul class="priv-list">
+                <li>Categorias de uso e tempo total</li>
+                <li>Variação em relação à semana anterior</li>
+                <li>Alertas com categoria, período e incerteza</li>
+                <li>Data da última atualização do painel</li>
+              </ul>
+            </div>
+            <div>
+              <h3 style="font-size:1rem; margin-bottom:10px;">O que você nunca vê</h3>
+              <ul class="priv-list">
+                <li>O texto das conversas com a IA</li>
+                <li>Diagnósticos de saúde mental</li>
+                <li>Bloqueios ou punições automáticas (meta: zero)</li>
+                <li>Uso de dados para treinar modelos de terceiros</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:20px;" id="bloco-jovem">
+          <h3 style="font-size:1rem; margin-bottom:10px;">Para <span class="child-name-inline">—</span> (explicação em linguagem simples)</h3>
+          <ul class="priv-list">
+            <li>Seus pais <strong>não veem</strong> o que você escreve para a IA. Eles veem só o assunto geral, como “escola”, e o tempo.</li>
+            <li>O app <strong>não castiga</strong>, não bloqueia e não diz que você tem um problema. Ele só ajuda a família a conversar.</li>
+            <li>Se o app errar sobre você, use <strong>Contestar</strong> e explique o seu lado. Uma pessoa vai ler.</li>
+            <li>Não escreva seu nome completo, endereço, escola ou telefone para a IA. Se precisar de ajuda, fale com um adulto de confiança.</li>
+          </ul>
+          <p class="note-line">Para crianças de 6 a 9 anos, esta explicação é lida em conjunto com o responsável.</p>
+        </div>
+        <div class="card">
+          <fieldset class="field">
+            <legend class="title">Controles de privacidade</legend>
+            <div class="hint">Tudo o que é opcional vem desativado. Você pode mudar a qualquer momento.</div>
+            <label class="toggle-row" for="pv-proposito">
+              <div><div class="t-name">Registrar o propósito declarado pela criança (RF07)</div><div class="t-desc" id="d-pv1">Desativado por padrão até a família entender o que isso significa.</div></div>
+              <span class="switch"><input type="checkbox" id="pv-proposito" aria-describedby="d-pv1"><span class="track" aria-hidden="true"></span><span class="knob" aria-hidden="true"></span></span>
+            </label>
+            <label class="toggle-row" for="pv-correcoes">
+              <div><div class="t-name">Usar minhas correções para melhorar a classificação</div><div class="t-desc" id="d-pv2">Só a categoria corrigida é usada, nunca o texto de conversas.</div></div>
+              <span class="switch"><input type="checkbox" id="pv-correcoes" aria-describedby="d-pv2"><span class="track" aria-hidden="true"></span><span class="knob" aria-hidden="true"></span></span>
+            </label>
+          </fieldset>
+          <div class="field">
+            <span class="title">Por quanto tempo guardamos os dados</span>
+            <table class="priv-table">
+              <tr><th scope="row">Texto das conversas</th><td>Não é guardado: descartado após a classificação</td></tr>
+              <tr><th scope="row">Indicadores por categoria</th><td>60 dias</td></tr>
+              <tr><th scope="row">Registro de quem acessou</th><td>6 meses</td></tr>
+            </table>
+            <p class="note-line">Prazos propostos para o protótipo, sujeitos a validação jurídica.</p>
+          </div>
+          <div class="save-bar">
+            <button class="btn" id="save-priv">Salvar privacidade</button>
+            <button class="btn danger" id="btn-delete">Excluir perfil e dados</button>
+            <span class="saved-msg" id="priv-msg" role="status" aria-live="polite">Privacidade salva.</span>
+          </div>
+          <p class="note-line">Política de Privacidade v1.1 · Termo de Consentimento v1.1 · Última atualização: <strong class="last-update">—</strong> · Protótipo com dados fictícios</p>
+        </div>
+      </section>
+
+      <!-- ================= CONFIG ================= -->
+      <section class="view" id="view-config" role="tabpanel" aria-labelledby="navtab-config" tabindex="0">
+        <div class="topbar">
+          <p class="eyebrow">RF01 · RF02</p>
+          <h1>Configurações de supervisão</h1>
+          <p>Defina, junto com <span class="child-name-inline">—</span>, o nível de mediação — faixa etária, temas sensíveis e horários de uso.</p>
+        </div>
+
+        <div class="card">
+          <div class="field">
+            <label class="title" for="cfg-age">Faixa etária</label>
+            <div class="hint">Ajusta a sensibilidade dos alertas e o conteúdo das trilhas.</div>
+            <select id="cfg-age">
+              <option value="6-9">6 a 9 anos</option>
+              <option value="10-12">10 a 12 anos</option>
+              <option value="13-15">13 a 15 anos</option>
+              <option value="16-17">16 a 17 anos</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <span class="title" id="lbl-horario">Horário de uso permitido</span>
+            <div class="hint">Fora deste intervalo, o app sugere uma pausa em vez de bloquear silenciosamente.</div>
+            <div class="time-range">
+              <label for="cfg-start" class="visually-hidden">Horário inicial permitido</label>
+              <span id="t-start" aria-hidden="true">08:00</span>
+              <input type="range" id="cfg-start" min="0" max="23" value="8" aria-valuetext="08:00">
+            </div>
+            <div class="time-range">
+              <label for="cfg-end" class="visually-hidden">Horário final permitido</label>
+              <span id="t-end" aria-hidden="true">20:00</span>
+              <input type="range" id="cfg-end" min="0" max="23" value="20" aria-valuetext="20:00">
+            </div>
+          </div>
+
+          <fieldset class="field">
+            <legend class="title">Temas sensíveis a acompanhar</legend>
+            <div class="hint">O GuardIA prioriza alertas educativos nesses temas.</div>
+
+            <label class="toggle-row" for="tg-saude">
+              <div><div class="t-name">Saúde e corpo</div><div class="t-desc" id="d-saude">Dúvidas sobre saúde física, alimentação, corpo</div></div>
+              <span class="switch"><input type="checkbox" id="tg-saude" checked aria-describedby="d-saude"><span class="track" aria-hidden="true"></span><span class="knob" aria-hidden="true"></span></span>
+            </label>
+            <label class="toggle-row" for="tg-emocional">
+              <div><div class="t-name">Apoio emocional</div><div class="t-desc" id="d-emocional">Uso da IA para lidar com tristeza, raiva ou ansiedade</div></div>
+              <span class="switch"><input type="checkbox" id="tg-emocional" checked aria-describedby="d-emocional"><span class="track" aria-hidden="true"></span><span class="knob" aria-hidden="true"></span></span>
+            </label>
+            <label class="toggle-row" for="tg-relacoes">
+              <div><div class="t-name">Relacionamentos</div><div class="t-desc" id="d-relacoes">Conversas sobre amizades, romance, conflitos sociais</div></div>
+              <span class="switch"><input type="checkbox" id="tg-relacoes" aria-describedby="d-relacoes"><span class="track" aria-hidden="true"></span><span class="knob" aria-hidden="true"></span></span>
+            </label>
+            <label class="toggle-row" for="tg-continuo">
+              <div><div class="t-name">Uso contínuo prolongado</div><div class="t-desc" id="d-continuo">Sessões longas e ininterruptas com um mesmo chatbot</div></div>
+              <span class="switch"><input type="checkbox" id="tg-continuo" checked aria-describedby="d-continuo"><span class="track" aria-hidden="true"></span><span class="knob" aria-hidden="true"></span></span>
+            </label>
+          </fieldset>
+
+          <div class="save-bar">
+            <button class="btn" id="save-cfg">Salvar configuração</button>
+            <span class="saved-msg" id="saved-msg" role="status" aria-live="polite">Configuração salva.</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  // =========================================================
+  // storage helpers
+  // =========================================================
+  function loadRaw(key, fallback){
+    try{
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    }catch(e){ return fallback; }
+  }
+  function saveRaw(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
+
+  var ACCOUNTS_KEY = 'guardia_accounts';
+  var SESSION_KEY = 'guardia_session';
+
+  function getAccounts(){ return loadRaw(ACCOUNTS_KEY, {}); }
+  function saveAccounts(accs){ saveRaw(ACCOUNTS_KEY, accs); }
+
+  // =========================================================
+  // password show/hide toggles
+  // =========================================================
+  document.querySelectorAll('.pw-toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var input = document.getElementById(btn.dataset.target);
+      var showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? 'Mostrar' : 'Ocultar';
+      btn.setAttribute('aria-pressed', String(!showing));
+    });
+  });
+
+  // =========================================================
+  // auth screen: accessible tabs (login / signup)
+  // =========================================================
+  var screenAuth = document.getElementById('screen-auth');
+  var screenApp = document.getElementById('screen-app');
+  var authTabs = [document.getElementById('tab-login'), document.getElementById('tab-signup')];
+  var authPanels = { 'tab-login': document.getElementById('panel-login'), 'tab-signup': document.getElementById('panel-signup') };
+  var formLogin = document.getElementById('form-login');
+  var formSignup = document.getElementById('form-signup');
+  var loginError = document.getElementById('login-error');
+  var signupError = document.getElementById('signup-error');
+
+  function activateAuthTab(tab){
+    authTabs.forEach(function(t){
+      var selected = t === tab;
+      t.setAttribute('aria-selected', String(selected));
+      t.tabIndex = selected ? 0 : -1;
+      authPanels[t.id].hidden = !selected;
+    });
+    tab.focus();
+  }
+  authTabs.forEach(function(tab, i){
+    tab.addEventListener('click', function(){ activateAuthTab(tab); });
+    tab.addEventListener('keydown', function(e){
+      if(e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+        e.preventDefault();
+        var next = e.key === 'ArrowRight' ? (i + 1) % authTabs.length : (i - 1 + authTabs.length) % authTabs.length;
+        activateAuthTab(authTabs[next]);
+      }
+    });
+  });
+
+  formLogin.addEventListener('submit', function(e){
+    e.preventDefault();
+    loginError.classList.remove('show');
+    var email = document.getElementById('login-email').value.trim().toLowerCase();
+    var pass = document.getElementById('login-pass').value;
+    var accs = getAccounts();
+    var acc = accs[email];
+    if(!acc || acc.password !== pass){
+      loginError.textContent = 'E-mail ou senha incorretos, ou esta conta ainda não existe.';
+      loginError.classList.add('show');
+      return;
+    }
+    saveRaw(SESSION_KEY, email);
+    enterApp(acc);
+  });
+
+  formSignup.addEventListener('submit', function(e){
+    e.preventDefault();
+    signupError.classList.remove('show');
+    var parentName = document.getElementById('su-parent').value.trim();
+    var email = document.getElementById('su-email').value.trim().toLowerCase();
+    var pass = document.getElementById('su-pass').value;
+    var childName = document.getElementById('su-child').value.trim();
+    var childAge = document.getElementById('su-age').value;
+    if(!document.getElementById('su-consent').checked){ signupError.textContent = 'Para continuar, leia e aceite o termo de consentimento.'; signupError.classList.add('show'); return; }
+    if(pass.length < 6){
+      signupError.textContent = 'A senha precisa ter pelo menos 6 caracteres.';
+      signupError.classList.add('show');
+      return;
+    }
+    var accs = getAccounts();
+    if(accs[email]){
+      signupError.textContent = 'Já existe uma conta com este e-mail. Tente entrar.';
+      signupError.classList.add('show');
+      return;
+    }
+    var acc = { parentName:parentName, email:email, password:pass, child:{ name:childName, age:childAge }, consent:{ termo:'1.1', politica:'1.1', data:new Date().toISOString() } };
+    accs[email] = acc;
+    saveAccounts(accs);
+    saveRaw(SESSION_KEY, email);
+    enterApp(acc);
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', function(){
+    localStorage.removeItem(SESSION_KEY);
+    screenApp.style.display = 'none';
+    screenAuth.style.display = 'flex';
+    formLogin.reset();
+    document.getElementById('login-email').focus();
+  });
+
+  // =========================================================
+  // enter app: bind account, scope storage, render views
+  // =========================================================
+  function enterApp(acc){
+    document.getElementById('sb-child-name').textContent = acc.child.name + ' · ' + acc.child.age + ' anos';
+    document.querySelectorAll('.child-name-inline').forEach(function(el){ el.textContent = acc.child.name; });
+
+    screenAuth.style.display = 'none';
+    screenApp.style.display = 'block';
+
+    initTabs();
+    initAlerts(acc.email);
+    initTrails(acc.email);
+    initConfig(acc.email);
+    initPrivacy(acc.email);
+
+    document.getElementById('main-content').focus();
+  }
+
+  // auto-login if a session already exists
+  function tryAutoLogin(){
+    var email = loadRaw(SESSION_KEY, null);
+    if(email){
+      var accs = getAccounts();
+      if(accs[email]){ enterApp(accs[email]); return; }
+    }
+    screenAuth.style.display = 'flex';
+  }
+
+  // =========================================================
+  // app nav: accessible tabs (keyboard + click)
+  // =========================================================
+  function initTabs(){
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('nav.tabs [role="tab"]'));
+
+    function activate(tab){
+      tabs.forEach(function(t){
+        var selected = t === tab;
+        t.setAttribute('aria-selected', String(selected));
+        t.tabIndex = selected ? 0 : -1;
+        document.getElementById(t.dataset.view ? 'view-' + t.dataset.view : '').classList.toggle('active', selected);
+      });
+    }
+
+    tabs.forEach(function(tab, i){
+      tab.onclick = function(){ activate(tab); tab.focus(); };
+      tab.onkeydown = function(e){
+        var next = null;
+        if(e.key === 'ArrowDown' || e.key === 'ArrowRight') next = tabs[(i + 1) % tabs.length];
+        else if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = tabs[(i - 1 + tabs.length) % tabs.length];
+        else if(e.key === 'Home') next = tabs[0];
+        else if(e.key === 'End') next = tabs[tabs.length - 1];
+        if(next){ e.preventDefault(); activate(next); next.focus(); }
+      };
+    });
+
+    document.getElementById('btn-go-alertas').onclick = function(){
+      var alertTab = document.getElementById('navtab-alertas');
+      activate(alertTab);
+      alertTab.focus();
+    };
+  }
+
+  // =========================================================
+  // alerts (scoped per account)
+  // =========================================================
+  var alertsData = [
+    {
+      id:'a1', sev:'Padrão de uso', periodo:'Últimos 7 dias', conf:'Confiança média', why:'Número e duração de sessões classificadas como apoio emocional, comparados às 4 semanas anteriores. Não usamos o texto das conversas.',
+      title:'Uso emocional intenso em um único chatbot',
+      body:'Houve três sessões longas e seguidas de apoio emocional com IA nesta semana, um aumento em relação ao padrão habitual.',
+      suggest:'Pergunte como ela(e) está se sentindo essa semana, sem mencionar o aplicativo — abra espaço antes de comentar o que você viu.'
+    },
+    {
+      id:'a2', sev:'Tema sensível', periodo:'Últimos 7 dias', conf:'Confiança baixa', why:'Frequência da categoria “saúde e corpo” em relação ao padrão da semana anterior. Pode ser tarefa escolar. Não usamos o texto das conversas.',
+      title:'Perguntas recorrentes sobre saúde e corpo',
+      body:'A categoria "saúde e corpo" apareceu com mais frequência que o normal nas interações desta semana.',
+      suggest:'Ofereça-se para conversar ou marcar uma consulta se o assunto for recorrente — reforce que a IA pode errar em temas de saúde.'
+    },
+    {
+      id:'a3', sev:'Engajamento contínuo', periodo:'Ontem', conf:'Confiança alta', why:'Duração contínua da sessão, medida pelo relógio do aplicativo. Não usamos o texto das conversas.',
+      title:'Sessão contínua de mais de 2 horas',
+      body:'Uma conversa com IA se estendeu por mais de duas horas sem pausa natural — padrão associado a mecânicas de engajamento contínuo.',
+      suggest:'Combine um sinal de pausa (ex.: um alarme) para sessões longas, decidido em conjunto, não imposto.'
+    }
+  ];
+
+  function initAlerts(email){
+    var key = 'guardia_resolved_alerts_' + email;
+    var resolved = loadRaw(key, {});
+    var ACT = { conversar:'Conversa registrada', ignorar:'Alerta ignorado', corrigir:'Classificação enviada para correção', contestar:'Contestação enviada para revisão humana', orientacao:'Orientação solicitada' };
+
+    function renderAlerts(){
+      var list = document.getElementById('alert-list');
+      list.innerHTML = '';
+      var openCount = 0;
+      alertsData.forEach(function(a){
+        var isDone = !!resolved[a.id];
+        if(!isDone) openCount++;
+        var el = document.createElement('div');
+        el.className = 'alert-card' + (isDone ? ' resolved' : '');
+        el.innerHTML =
+          '<div class="alert-top"><h3>' + a.title + '</h3><span class="sev">' + a.sev + '</span></div>' +
+          '<div class="meta-row"><span class="chip">' + a.periodo + '</span><span class="chip">' + a.conf + '</span><span class="chip">Sem diagnóstico</span></div>' +
+          '<p>' + a.body + '</p>' +
+          '<div class="suggest"><b>Sugestão de conversa</b>' + a.suggest + '</div>' +
+          '<div class="why"><b class="h">Por que você está vendo isto (fontes do alerta)</b>' + a.why + ' Esta classificação pode estar errada e não indica um problema de saúde. Seu filho ou filha pode contestar este alerta. Este alerta descreve um padrão de uso, não descreve quem seu filho ou filha é, e nenhum rótulo é guardado: os indicadores expiram em 60 dias. Nenhuma ação automática foi tomada.</div>' +
+          '<div class="alert-actions">' +
+            '<button class="btn small inline" data-act="conversar" data-id="' + a.id + '">Conversar</button>' +
+            '<button class="btn small inline ghost" data-act="ignorar" data-id="' + a.id + '">Ignorar</button>' +
+            '<button class="btn small inline ghost" data-act="corrigir" data-id="' + a.id + '">Corrigir classificação</button>' +
+            '<button class="btn small inline ghost" data-act="contestar" data-id="' + a.id + '">Contestar (para o jovem)</button>' +
+            '<button class="btn small inline ghost" data-act="orientacao" data-id="' + a.id + '">Pedir orientação</button>' +
+          '</div>' +
+          '<span class="done-label">✓ ' + (ACT[resolved[a.id]] || 'Conversa registrada') + '</span>';
+        list.appendChild(el);
+      });
+      list.querySelectorAll('button[data-act]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          resolved[btn.dataset.id] = btn.dataset.act;
+          saveRaw(key, resolved);
+          renderAlerts();
+        });
+      });
+      var kpi = document.getElementById('kpi-open-alerts');
+      if(kpi) kpi.textContent = openCount;
+    }
+    renderAlerts();
+  }
+
+  // =========================================================
+  // trails (scoped per account)
+  // =========================================================
+  var trailsData = [
+    { id:'t1', title:'O que uma IA sabe (e não sabe)', desc:'Entenda por que uma IA pode responder com confiança mesmo estando errada.', xp:120, steps:4 },
+    { id:'t2', title:'Como checar se uma resposta é verdadeira', desc:'Pratiquem juntos formas simples de verificar o que a IA disse.', xp:100, steps:3 },
+    { id:'t3', title:'Quando pedir ajuda de um adulto', desc:'Situações em que vale a pena sair do chat e conversar com alguém de confiança.', xp:90, steps:3 },
+    { id:'t4', title:'IA não substitui um amigo', desc:'Uma conversa sobre a diferença entre companhia de IA e vínculos humanos.', xp:110, steps:4 }
+  ];
+
+  function initTrails(email){
+    var key = 'guardia_trail_progress_' + email;
+    var progress = loadRaw(key, { t1:0, t2:0, t3:0, t4:0 });
+
+    function updateSummary(){
+      var doneCount = 0, xpTotal = 0;
+      trailsData.forEach(function(t){
+        var d = progress[t.id] || 0;
+        if(d >= t.steps){ doneCount++; xpTotal += t.xp; }
+        else { xpTotal += Math.round(t.xp * (d / t.steps)); }
+      });
+      var dEl = document.getElementById('stat-trails-done');
+      var xEl = document.getElementById('stat-xp');
+      if(dEl) dEl.textContent = doneCount;
+      if(xEl) xEl.textContent = xpTotal;
+    }
+
+    function renderTrails(){
+      var list = document.getElementById('trail-list');
+      list.innerHTML = '';
+      trailsData.forEach(function(t){
+        var done = progress[t.id] || 0;
+        var pct = Math.round((done / t.steps) * 100);
+        var state = done === 0 ? 'Não iniciada' : (done >= t.steps ? 'Concluída' : done + ' de ' + t.steps + ' etapas');
+        var el = document.createElement('div');
+        el.className = 'trail';
+        el.innerHTML =
+          '<div class="trail-top"><h3>' + t.title + '</h3><span class="xp">+' + t.xp + ' XP</span></div>' +
+          '<p>' + t.desc + '</p>' +
+          '<div class="trail-progress">' +
+            '<div class="meter" role="img" aria-label="Progresso: ' + state + '"><span style="width:' + pct + '%"></span></div>' +
+            '<span class="state">' + state + '</span>' +
+            '<button class="btn small inline" data-id="' + t.id + '" ' + (done >= t.steps ? 'disabled' : '') + '>' + (done === 0 ? 'Começar juntos' : (done >= t.steps ? 'Feito' : 'Continuar')) + '</button>' +
+          '</div>';
+        list.appendChild(el);
+      });
+      list.querySelectorAll('button[data-id]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var id = btn.dataset.id;
+          var trail = trailsData.find(function(t){ return t.id === id; });
+          progress[id] = Math.min((progress[id] || 0) + 1, trail.steps);
+          saveRaw(key, progress);
+          renderTrails();
+          updateSummary();
+        });
+      });
+    }
+    renderTrails();
+    updateSummary();
+  }
+
+  // =========================================================
+  // config (scoped per account)
+  // =========================================================
+  function initPrivacy(email){
+    var key = 'guardia_privacy_' + email;
+    var pv = loadRaw(key, { proposito:false, correcoes:false });
+    document.getElementById('pv-proposito').checked = pv.proposito;
+    document.getElementById('pv-correcoes').checked = pv.correcoes;
+    var now = new Date();
+    var stamp = now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    document.querySelectorAll('.last-update').forEach(function(el){ el.textContent = stamp; });
+    document.getElementById('save-priv').onclick = function(){
+      saveRaw(key, { proposito: document.getElementById('pv-proposito').checked, correcoes: document.getElementById('pv-correcoes').checked });
+      var m = document.getElementById('priv-msg'); m.classList.add('show');
+      setTimeout(function(){ m.classList.remove('show'); }, 2200);
+    };
+    document.getElementById('btn-delete').onclick = function(){
+      if(!confirm('Excluir o perfil e todos os dados desta família? Esta ação não pode ser desfeita.')) return;
+      var accs = getAccounts(); delete accs[email]; saveAccounts(accs);
+      ['guardia_resolved_alerts_','guardia_trail_progress_','guardia_config_','guardia_privacy_'].forEach(function(p){ localStorage.removeItem(p + email); });
+      localStorage.removeItem(SESSION_KEY);
+      screenApp.style.display = 'none'; screenAuth.style.display = 'flex';
+      formLogin.reset();
+    };
+  }
+
+  function initConfig(email){
+    var key = 'guardia_config_' + email;
+    var cfg = loadRaw(key, {
+      age:'10-12', start:8, end:20,
+      saude:true, emocional:true, relacoes:false, continuo:true
+    });
+
+    document.getElementById('cfg-age').value = cfg.age;
+    document.getElementById('cfg-start').value = cfg.start;
+    document.getElementById('cfg-end').value = cfg.end;
+    document.getElementById('tg-saude').checked = cfg.saude;
+    document.getElementById('tg-emocional').checked = cfg.emocional;
+    document.getElementById('tg-relacoes').checked = cfg.relacoes;
+    document.getElementById('tg-continuo').checked = cfg.continuo;
+
+    function fmt(h){ return (h < 10 ? '0' + h : h) + ':00'; }
+    function refreshTimes(){
+      var s = fmt(+document.getElementById('cfg-start').value);
+      var en = fmt(+document.getElementById('cfg-end').value);
+      document.getElementById('t-start').textContent = s;
+      document.getElementById('t-end').textContent = en;
+      document.getElementById('cfg-start').setAttribute('aria-valuetext', s);
+      document.getElementById('cfg-end').setAttribute('aria-valuetext', en);
+    }
+    refreshTimes();
+    document.getElementById('cfg-start').oninput = refreshTimes;
+    document.getElementById('cfg-end').oninput = refreshTimes;
+
+    document.getElementById('save-cfg').onclick = function(){
+      var newCfg = {
+        age: document.getElementById('cfg-age').value,
+        start: +document.getElementById('cfg-start').value,
+        end: +document.getElementById('cfg-end').value,
+        saude: document.getElementById('tg-saude').checked,
+        emocional: document.getElementById('tg-emocional').checked,
+        relacoes: document.getElementById('tg-relacoes').checked,
+        continuo: document.getElementById('tg-continuo').checked
+      };
+      saveRaw(key, newCfg);
+      var msg = document.getElementById('saved-msg');
+      msg.classList.add('show');
+      setTimeout(function(){ msg.classList.remove('show'); }, 2200);
+    };
+  }
+  // auto-login só depois de todas as definições (alertas, trilhas, config, privacidade)
+  tryAutoLogin();
+})();
+</script>
+</body>
+</html>
